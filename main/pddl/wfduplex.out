@@ -1,0 +1,7 @@
+(mark_for_cleaning anner)
+(clean_node a_in ta_in)
+(clean_node a_out ta_out)
+(indicate_clean anner)
+(morph a_in in-bin)
+(apply_transform anner)
+; cost = 6 (unit cost)

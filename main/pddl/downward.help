@@ -1,0 +1,974 @@
+Help:
+Help for AbstractTask
+
+== Cost-adapted task ==
+adapt_costs(cost_type=normal)
+ cost_type ({normal, one, plusone}): Operator cost adjustment type. No matter what this setting is, axioms will always be considered as actions of cost 0 by the heuristics that treat axioms as actions.
+ - normal: all actions are accounted for with their real cost
+ - one: all actions are accounted for as unit cost
+ - plusone: all actions are accounted for as their real cost + 1 (except if all actions have original cost 1, in which case cost 1 is used). This is the behaviour known for the heuristics of the LAMA planner. This is intended to be used by the heuristics, not search engines, but is supported for both.
+== no_transform ==
+no_transform()
+
+Help for ConstraintGenerator
+
+== Delete relaxation constraints ==
+delete_relaxation_constraints(use_time_vars=false, use_integer_vars=false)
+ use_time_vars (bool): use variables for time steps. With these additional variables the constraints enforce an order between the selected operators. Leaving this off (default) corresponds to the time relaxation by Imai and Fukunaga. Switching it on, can increase the heuristic value but will increase the size of the constraints which has a strong impact on runtime. Constraints involving time variables use a big-M encoding, so they are more useful if used with integer variables.
+ use_integer_vars (bool): restrict auxiliary variables to integer values. These variables encode whether operators are used, facts are reached, which operator first achieves which fact, and in which order the operators are used. Restricting them to integers generally improves the heuristic value at the cost of increased runtime.
+== LM-cut landmark constraints ==
+lmcut_constraints()
+== Posthoc optimization constraints ==
+pho_constraints(patterns=systematic(2))
+ patterns (PatternCollectionGenerator): pattern generation method
+== State equation constraints ==
+state_equation_constraints(verbosity=normal)
+ verbosity ({silent, normal, verbose, debug}): Option to specify the verbosity level.
+ - silent: only the most basic output
+ - normal: relevant information to monitor progress
+ - verbose: full output
+ - debug: like verbose with additional debug output
+
+Help for Evaluator
+
+
+This feature type can be bound to variables using ``let(variable_name, variable_definition, expression)`` where ``expression`` can use ``variable_name``. Predefinitions using ``--evaluator``, ``--heuristic``, and ``--landmarks`` are automatically transformed into ``let``-expressions but are deprecated.
+== Additive heuristic ==
+add(verbosity=normal, transform=no_transform(), cache_estimates=true)
+ verbosity ({silent, normal, verbose, debug}): Option to specify the verbosity level.
+ - silent: only the most basic output
+ - normal: relevant information to monitor progress
+ - verbose: full output
+ - debug: like verbose with additional debug output
+ transform (AbstractTask): Optional task transformation for the heuristic. Currently, adapt_costs() and no_transform() are available.
+ cache_estimates (bool): cache heuristic estimates
+== Blind heuristic ==
+blind(verbosity=normal, transform=no_transform(), cache_estimates=true)
+ verbosity ({silent, normal, verbose, debug}): Option to specify the verbosity level.
+ - silent: only the most basic output
+ - normal: relevant information to monitor progress
+ - verbose: full output
+ - debug: like verbose with additional debug output
+ transform (AbstractTask): Optional task transformation for the heuristic. Currently, adapt_costs() and no_transform() are available.
+ cache_estimates (bool): cache heuristic estimates
+== Context-enhanced additive heuristic ==
+cea(verbosity=normal, transform=no_transform(), cache_estimates=true)
+ verbosity ({silent, normal, verbose, debug}): Option to specify the verbosity level.
+ - silent: only the most basic output
+ - normal: relevant information to monitor progress
+ - verbose: full output
+ - debug: like verbose with additional debug output
+ transform (AbstractTask): Optional task transformation for the heuristic. Currently, adapt_costs() and no_transform() are available.
+ cache_estimates (bool): cache heuristic estimates
+== Additive CEGAR heuristic ==
+cegar(subtasks=[landmarks(),goals()], max_states=infinity, max_transitions=1M, max_time=infinity, pick=max_refined, use_general_costs=true, verbosity=normal, transform=no_transform(), cache_estimates=true, random_seed=-1)
+ subtasks (list of SubtaskGenerator): subtask generators
+ max_states (int [1, infinity]): maximum sum of abstract states over all abstractions
+ max_transitions (int [0, infinity]): maximum sum of real transitions (excluding self-loops) over  all abstractions
+ max_time (double [0.0, infinity]): maximum time in seconds for building abstractions
+ pick ({random, min_unwanted, max_unwanted, min_refined, max_refined, min_hadd, max_hadd}): how to choose on which variable to split the flaw state
+ - random: select a random variable (among all eligible variables)
+ - min_unwanted: select an eligible variable which has the least unwanted values (number of values of v that land in the abstract state whose h-value will probably be raised) in the flaw state
+ - max_unwanted: select an eligible variable which has the most unwanted values (number of values of v that land in the abstract state whose h-value will probably be raised) in the flaw state
+ - min_refined: select an eligible variable which is the least refined (-1 * (remaining_values(v) / original_domain_size(v))) in the flaw state
+ - max_refined: select an eligible variable which is the most refined (-1 * (remaining_values(v) / original_domain_size(v))) in the flaw state
+ - min_hadd: select an eligible variable with minimal h^add(s_0) value over all facts that need to be removed from the flaw state
+ - max_hadd: select an eligible variable with maximal h^add(s_0) value over all facts that need to be removed from the flaw state
+ use_general_costs (bool): allow negative costs in cost partitioning
+ verbosity ({silent, normal, verbose, debug}): Option to specify the verbosity level.
+ - silent: only the most basic output
+ - normal: relevant information to monitor progress
+ - verbose: full output
+ - debug: like verbose with additional debug output
+ transform (AbstractTask): Optional task transformation for the heuristic. Currently, adapt_costs() and no_transform() are available.
+ cache_estimates (bool): cache heuristic estimates
+ random_seed (int [-1, infinity]): Set to -1 (default) to use the global random number generator. Set to any other value to use a local random number generator with the given seed.
+== Causal graph heuristic ==
+cg(max_cache_size=1000000, verbosity=normal, transform=no_transform(), cache_estimates=true)
+ max_cache_size (int [0, infinity]): maximum number of cached entries per variable (set to 0 to disable cache)
+ verbosity ({silent, normal, verbose, debug}): Option to specify the verbosity level.
+ - silent: only the most basic output
+ - normal: relevant information to monitor progress
+ - verbose: full output
+ - debug: like verbose with additional debug output
+ transform (AbstractTask): Optional task transformation for the heuristic. Currently, adapt_costs() and no_transform() are available.
+ cache_estimates (bool): cache heuristic estimates
+== FF heuristic ==
+ff(verbosity=normal, transform=no_transform(), cache_estimates=true)
+ verbosity ({silent, normal, verbose, debug}): Option to specify the verbosity level.
+ - silent: only the most basic output
+ - normal: relevant information to monitor progress
+ - verbose: full output
+ - debug: like verbose with additional debug output
+ transform (AbstractTask): Optional task transformation for the heuristic. Currently, adapt_costs() and no_transform() are available.
+ cache_estimates (bool): cache heuristic estimates
+== Goal count heuristic ==
+goalcount(verbosity=normal, transform=no_transform(), cache_estimates=true)
+ verbosity ({silent, normal, verbose, debug}): Option to specify the verbosity level.
+ - silent: only the most basic output
+ - normal: relevant information to monitor progress
+ - verbose: full output
+ - debug: like verbose with additional debug output
+ transform (AbstractTask): Optional task transformation for the heuristic. Currently, adapt_costs() and no_transform() are available.
+ cache_estimates (bool): cache heuristic estimates
+== h^m heuristic ==
+hm(m=2, verbosity=normal, transform=no_transform(), cache_estimates=true)
+ m (int [1, infinity]): subset size
+ verbosity ({silent, normal, verbose, debug}): Option to specify the verbosity level.
+ - silent: only the most basic output
+ - normal: relevant information to monitor progress
+ - verbose: full output
+ - debug: like verbose with additional debug output
+ transform (AbstractTask): Optional task transformation for the heuristic. Currently, adapt_costs() and no_transform() are available.
+ cache_estimates (bool): cache heuristic estimates
+== Max heuristic ==
+hmax(verbosity=normal, transform=no_transform(), cache_estimates=true)
+ verbosity ({silent, normal, verbose, debug}): Option to specify the verbosity level.
+ - silent: only the most basic output
+ - normal: relevant information to monitor progress
+ - verbose: full output
+ - debug: like verbose with additional debug output
+ transform (AbstractTask): Optional task transformation for the heuristic. Currently, adapt_costs() and no_transform() are available.
+ cache_estimates (bool): cache heuristic estimates
+== Landmark cost partitioning heuristic ==
+landmark_cost_partitioning(lm_factory, pref=false, verbosity=normal, transform=no_transform(), cache_estimates=true, optimal=false, alm=true, lpsolver=cplex)
+ lm_factory (LandmarkFactory): the set of landmarks to use for this heuristic. The set of landmarks can be specified here, or predefined (see LandmarkFactory).
+ pref (bool): identify preferred operators (see OptionCaveats#Using_preferred_operators_with_landmark_heuristics)
+ verbosity ({silent, normal, verbose, debug}): Option to specify the verbosity level.
+ - silent: only the most basic output
+ - normal: relevant information to monitor progress
+ - verbose: full output
+ - debug: like verbose with additional debug output
+ transform (AbstractTask): Optional task transformation for the heuristic. Currently, adapt_costs() and no_transform() are available.
+ cache_estimates (bool): cache heuristic estimates
+ optimal (bool): use optimal (LP-based) cost sharing
+ alm (bool): use action landmarks
+ lpsolver ({clp, cplex, gurobi, soplex}): external solver that should be used to solve linear programs
+ - clp: default LP solver shipped with the COIN library
+ - cplex: commercial solver by IBM
+ - gurobi: commercial solver
+ - soplex: open source solver by ZIB
+== Landmark sum heuristic ==
+landmark_sum(lm_factory, pref=false, verbosity=normal, transform=no_transform(), cache_estimates=true)
+ lm_factory (LandmarkFactory): the set of landmarks to use for this heuristic. The set of landmarks can be specified here, or predefined (see LandmarkFactory).
+ pref (bool): identify preferred operators (see OptionCaveats#Using_preferred_operators_with_landmark_heuristics)
+ verbosity ({silent, normal, verbose, debug}): Option to specify the verbosity level.
+ - silent: only the most basic output
+ - normal: relevant information to monitor progress
+ - verbose: full output
+ - debug: like verbose with additional debug output
+ transform (AbstractTask): Optional task transformation for the heuristic. Currently, adapt_costs() and no_transform() are available.
+ cache_estimates (bool): cache heuristic estimates
+== Landmark-cut heuristic ==
+lmcut(verbosity=normal, transform=no_transform(), cache_estimates=true)
+ verbosity ({silent, normal, verbose, debug}): Option to specify the verbosity level.
+ - silent: only the most basic output
+ - normal: relevant information to monitor progress
+ - verbose: full output
+ - debug: like verbose with additional debug output
+ transform (AbstractTask): Optional task transformation for the heuristic. Currently, adapt_costs() and no_transform() are available.
+ cache_estimates (bool): cache heuristic estimates
+== Merge-and-shrink heuristic ==
+merge_and_shrink(verbosity=normal, transform=no_transform(), cache_estimates=true, merge_strategy, shrink_strategy, label_reduction=<none>, prune_unreachable_states=true, prune_irrelevant_states=true, max_states=-1, max_states_before_merge=-1, threshold_before_merge=-1, main_loop_max_time=infinity)
+ verbosity ({silent, normal, verbose, debug}): Option to specify the verbosity level.
+ - silent: only the most basic output
+ - normal: relevant information to monitor progress
+ - verbose: full output
+ - debug: like verbose with additional debug output
+ transform (AbstractTask): Optional task transformation for the heuristic. Currently, adapt_costs() and no_transform() are available.
+ cache_estimates (bool): cache heuristic estimates
+ merge_strategy (MergeStrategy): See detailed documentation for merge strategies. We currently recommend SCC-DFP, which can be achieved using {{{merge_strategy=merge_sccs(order_of_sccs=topological,merge_selector=score_based_filtering(scoring_functions=[goal_relevance,dfp,total_order]))}}}
+ shrink_strategy (ShrinkStrategy): See detailed documentation for shrink strategies. We currently recommend non-greedy shrink_bisimulation, which can be achieved using {{{shrink_strategy=shrink_bisimulation(greedy=false)}}}
+ label_reduction (LabelReduction): See detailed documentation for labels. There is currently only one 'option' to use label_reduction, which is {{{label_reduction=exact}}} Also note the interaction with shrink strategies.
+ prune_unreachable_states (bool): If true, prune abstract states unreachable from the initial state.
+ prune_irrelevant_states (bool): If true, prune abstract states from which no goal state can be reached.
+ max_states (int [-1, infinity]): maximum transition system size allowed at any time point.
+ max_states_before_merge (int [-1, infinity]): maximum transition system size allowed for two transition systems before being merged to form the synchronized product.
+ threshold_before_merge (int [-1, infinity]): If a transition system, before being merged, surpasses this soft transition system size limit, the shrink strategy is called to possibly shrink the transition system.
+ main_loop_max_time (double [0.0, infinity]): A limit in seconds on the runtime of the main loop of the algorithm. If the limit is exceeded, the algorithm terminates, potentially returning a factored transition system with several factors. Also note that the time limit is only checked between transformations of the main loop, but not during, so it can be exceeded if a transformation is runtime-intense.
+== Operator-counting heuristic ==
+operatorcounting(constraint_generators, use_integer_operator_counts=false, lpsolver=cplex, verbosity=normal, transform=no_transform(), cache_estimates=true)
+ constraint_generators (list of ConstraintGenerator): methods that generate constraints over operator-counting variables
+ use_integer_operator_counts (bool): restrict operator-counting variables to integer values. Computing the heuristic with integer variables can produce higher values but requires solving a MIP instead of an LP which is generally more computationally expensive. Turning this option on can thus drastically increase the runtime.
+ lpsolver ({clp, cplex, gurobi, soplex}): external solver that should be used to solve linear programs
+ - clp: default LP solver shipped with the COIN library
+ - cplex: commercial solver by IBM
+ - gurobi: commercial solver
+ - soplex: open source solver by ZIB
+ verbosity ({silent, normal, verbose, debug}): Option to specify the verbosity level.
+ - silent: only the most basic output
+ - normal: relevant information to monitor progress
+ - verbose: full output
+ - debug: like verbose with additional debug output
+ transform (AbstractTask): Optional task transformation for the heuristic. Currently, adapt_costs() and no_transform() are available.
+ cache_estimates (bool): cache heuristic estimates
+
+= Basic Evaluators =
+
+== Constant evaluator ==
+const(value=1, verbosity=normal)
+ value (int [0, infinity]): the constant value
+ verbosity ({silent, normal, verbose, debug}): Option to specify the verbosity level.
+ - silent: only the most basic output
+ - normal: relevant information to monitor progress
+ - verbose: full output
+ - debug: like verbose with additional debug output
+== g-value evaluator ==
+g(verbosity=normal)
+ verbosity ({silent, normal, verbose, debug}): Option to specify the verbosity level.
+ - silent: only the most basic output
+ - normal: relevant information to monitor progress
+ - verbose: full output
+ - debug: like verbose with additional debug output
+== Max evaluator ==
+max(evals, verbosity=normal)
+ evals (list of Evaluator): at least one evaluator
+ verbosity ({silent, normal, verbose, debug}): Option to specify the verbosity level.
+ - silent: only the most basic output
+ - normal: relevant information to monitor progress
+ - verbose: full output
+ - debug: like verbose with additional debug output
+== Preference evaluator ==
+pref(verbosity=normal)
+ verbosity ({silent, normal, verbose, debug}): Option to specify the verbosity level.
+ - silent: only the most basic output
+ - normal: relevant information to monitor progress
+ - verbose: full output
+ - debug: like verbose with additional debug output
+== Sum evaluator ==
+sum(evals, verbosity=normal)
+ evals (list of Evaluator): at least one evaluator
+ verbosity ({silent, normal, verbose, debug}): Option to specify the verbosity level.
+ - silent: only the most basic output
+ - normal: relevant information to monitor progress
+ - verbose: full output
+ - debug: like verbose with additional debug output
+== Weighted evaluator ==
+weight(eval, weight, verbosity=normal)
+ eval (Evaluator): evaluator
+ weight (int): weight
+ verbosity ({silent, normal, verbose, debug}): Option to specify the verbosity level.
+ - silent: only the most basic output
+ - normal: relevant information to monitor progress
+ - verbose: full output
+ - debug: like verbose with additional debug output
+
+= Pattern Database Heuristics =
+
+== Canonical PDB ==
+cpdbs(patterns=systematic(1), max_time_dominance_pruning=infinity, verbosity=normal, transform=no_transform(), cache_estimates=true)
+ patterns (PatternCollectionGenerator): pattern generation method
+ max_time_dominance_pruning (double [0.0, infinity]): The maximum time in seconds spent on dominance pruning. Using 0.0 turns off dominance pruning. Dominance pruning excludes patterns and additive subsets that will never contribute to the heuristic value because there are dominating subsets in the collection.
+ verbosity ({silent, normal, verbose, debug}): Option to specify the verbosity level.
+ - silent: only the most basic output
+ - normal: relevant information to monitor progress
+ - verbose: full output
+ - debug: like verbose with additional debug output
+ transform (AbstractTask): Optional task transformation for the heuristic. Currently, adapt_costs() and no_transform() are available.
+ cache_estimates (bool): cache heuristic estimates
+== iPDB ==
+ipdb(pdb_max_size=2000000, collection_max_size=20000000, num_samples=1000, min_improvement=10, max_time=infinity, random_seed=-1, verbosity=normal, max_time_dominance_pruning=infinity, verbosity=normal, transform=no_transform(), cache_estimates=true)
+ pdb_max_size (int [1, infinity]): maximal number of states per pattern database 
+ collection_max_size (int [1, infinity]): maximal number of states in the pattern collection
+ num_samples (int [1, infinity]): number of samples (random states) on which to evaluate each candidate pattern collection
+ min_improvement (int [1, infinity]): minimum number of samples on which a candidate pattern collection must improve on the current one to be considered as the next pattern collection 
+ max_time (double [0.0, infinity]): maximum time in seconds for improving the initial pattern collection via hill climbing. If set to 0, no hill climbing is performed at all. Note that this limit only affects hill climbing. Use max_time_dominance_pruning to limit the time spent for pruning dominated patterns.
+ random_seed (int [-1, infinity]): Set to -1 (default) to use the global random number generator. Set to any other value to use a local random number generator with the given seed.
+ verbosity ({silent, normal, verbose, debug}): Option to specify the verbosity level.
+ - silent: only the most basic output
+ - normal: relevant information to monitor progress
+ - verbose: full output
+ - debug: like verbose with additional debug output
+ max_time_dominance_pruning (double [0.0, infinity]): The maximum time in seconds spent on dominance pruning. Using 0.0 turns off dominance pruning. Dominance pruning excludes patterns and additive subsets that will never contribute to the heuristic value because there are dominating subsets in the collection.
+ verbosity ({silent, normal, verbose, debug}): Option to specify the verbosity level.
+ - silent: only the most basic output
+ - normal: relevant information to monitor progress
+ - verbose: full output
+ - debug: like verbose with additional debug output
+ transform (AbstractTask): Optional task transformation for the heuristic. Currently, adapt_costs() and no_transform() are available.
+ cache_estimates (bool): cache heuristic estimates
+== Pattern database heuristic ==
+pdb(pattern=greedy(), verbosity=normal, transform=no_transform(), cache_estimates=true)
+ pattern (PatternGenerator): pattern generation method
+ verbosity ({silent, normal, verbose, debug}): Option to specify the verbosity level.
+ - silent: only the most basic output
+ - normal: relevant information to monitor progress
+ - verbose: full output
+ - debug: like verbose with additional debug output
+ transform (AbstractTask): Optional task transformation for the heuristic. Currently, adapt_costs() and no_transform() are available.
+ cache_estimates (bool): cache heuristic estimates
+== Zero-One PDB ==
+zopdbs(patterns=systematic(1), verbosity=normal, transform=no_transform(), cache_estimates=true)
+ patterns (PatternCollectionGenerator): pattern generation method
+ verbosity ({silent, normal, verbose, debug}): Option to specify the verbosity level.
+ - silent: only the most basic output
+ - normal: relevant information to monitor progress
+ - verbose: full output
+ - debug: like verbose with additional debug output
+ transform (AbstractTask): Optional task transformation for the heuristic. Currently, adapt_costs() and no_transform() are available.
+ cache_estimates (bool): cache heuristic estimates
+
+= Potential Heuristics =
+
+== Potential heuristic optimized for all states ==
+all_states_potential(max_potential=1e8, lpsolver=cplex, verbosity=normal, transform=no_transform(), cache_estimates=true)
+ max_potential (double [0.0, infinity]): Bound potentials by this number. Using the bound {{{infinity}}} disables the bounds. In some domains this makes the computation of weights unbounded in which case no weights can be extracted. Using very high weights can cause numerical instability in the LP solver, while using very low weights limits the choice of potential heuristics. For details, see the ICAPS paper cited above.
+ lpsolver ({clp, cplex, gurobi, soplex}): external solver that should be used to solve linear programs
+ - clp: default LP solver shipped with the COIN library
+ - cplex: commercial solver by IBM
+ - gurobi: commercial solver
+ - soplex: open source solver by ZIB
+ verbosity ({silent, normal, verbose, debug}): Option to specify the verbosity level.
+ - silent: only the most basic output
+ - normal: relevant information to monitor progress
+ - verbose: full output
+ - debug: like verbose with additional debug output
+ transform (AbstractTask): Optional task transformation for the heuristic. Currently, adapt_costs() and no_transform() are available.
+ cache_estimates (bool): cache heuristic estimates
+== Diverse potential heuristics ==
+diverse_potentials(num_samples=1000, max_num_heuristics=infinity, max_potential=1e8, lpsolver=cplex, verbosity=normal, transform=no_transform(), cache_estimates=true, random_seed=-1, verbosity=normal)
+ num_samples (int [0, infinity]): Number of states to sample
+ max_num_heuristics (int [0, infinity]): maximum number of potential heuristics
+ max_potential (double [0.0, infinity]): Bound potentials by this number. Using the bound {{{infinity}}} disables the bounds. In some domains this makes the computation of weights unbounded in which case no weights can be extracted. Using very high weights can cause numerical instability in the LP solver, while using very low weights limits the choice of potential heuristics. For details, see the ICAPS paper cited above.
+ lpsolver ({clp, cplex, gurobi, soplex}): external solver that should be used to solve linear programs
+ - clp: default LP solver shipped with the COIN library
+ - cplex: commercial solver by IBM
+ - gurobi: commercial solver
+ - soplex: open source solver by ZIB
+ verbosity ({silent, normal, verbose, debug}): Option to specify the verbosity level.
+ - silent: only the most basic output
+ - normal: relevant information to monitor progress
+ - verbose: full output
+ - debug: like verbose with additional debug output
+ transform (AbstractTask): Optional task transformation for the heuristic. Currently, adapt_costs() and no_transform() are available.
+ cache_estimates (bool): cache heuristic estimates
+ random_seed (int [-1, infinity]): Set to -1 (default) to use the global random number generator. Set to any other value to use a local random number generator with the given seed.
+ verbosity ({silent, normal, verbose, debug}): Option to specify the verbosity level.
+ - silent: only the most basic output
+ - normal: relevant information to monitor progress
+ - verbose: full output
+ - debug: like verbose with additional debug output
+== Potential heuristic optimized for initial state ==
+initial_state_potential(max_potential=1e8, lpsolver=cplex, verbosity=normal, transform=no_transform(), cache_estimates=true)
+ max_potential (double [0.0, infinity]): Bound potentials by this number. Using the bound {{{infinity}}} disables the bounds. In some domains this makes the computation of weights unbounded in which case no weights can be extracted. Using very high weights can cause numerical instability in the LP solver, while using very low weights limits the choice of potential heuristics. For details, see the ICAPS paper cited above.
+ lpsolver ({clp, cplex, gurobi, soplex}): external solver that should be used to solve linear programs
+ - clp: default LP solver shipped with the COIN library
+ - cplex: commercial solver by IBM
+ - gurobi: commercial solver
+ - soplex: open source solver by ZIB
+ verbosity ({silent, normal, verbose, debug}): Option to specify the verbosity level.
+ - silent: only the most basic output
+ - normal: relevant information to monitor progress
+ - verbose: full output
+ - debug: like verbose with additional debug output
+ transform (AbstractTask): Optional task transformation for the heuristic. Currently, adapt_costs() and no_transform() are available.
+ cache_estimates (bool): cache heuristic estimates
+== Sample-based potential heuristics ==
+sample_based_potentials(num_heuristics=1, num_samples=1000, max_potential=1e8, lpsolver=cplex, verbosity=normal, transform=no_transform(), cache_estimates=true, random_seed=-1)
+ num_heuristics (int [0, infinity]): number of potential heuristics
+ num_samples (int [0, infinity]): Number of states to sample
+ max_potential (double [0.0, infinity]): Bound potentials by this number. Using the bound {{{infinity}}} disables the bounds. In some domains this makes the computation of weights unbounded in which case no weights can be extracted. Using very high weights can cause numerical instability in the LP solver, while using very low weights limits the choice of potential heuristics. For details, see the ICAPS paper cited above.
+ lpsolver ({clp, cplex, gurobi, soplex}): external solver that should be used to solve linear programs
+ - clp: default LP solver shipped with the COIN library
+ - cplex: commercial solver by IBM
+ - gurobi: commercial solver
+ - soplex: open source solver by ZIB
+ verbosity ({silent, normal, verbose, debug}): Option to specify the verbosity level.
+ - silent: only the most basic output
+ - normal: relevant information to monitor progress
+ - verbose: full output
+ - debug: like verbose with additional debug output
+ transform (AbstractTask): Optional task transformation for the heuristic. Currently, adapt_costs() and no_transform() are available.
+ cache_estimates (bool): cache heuristic estimates
+ random_seed (int [-1, infinity]): Set to -1 (default) to use the global random number generator. Set to any other value to use a local random number generator with the given seed.
+
+Help for LabelReduction
+
+== Exact generalized label reduction ==
+exact(before_shrinking, before_merging, method=all_transition_systems_with_fixpoint, system_order=random, random_seed=-1)
+ before_shrinking (bool): apply label reduction before shrinking
+ before_merging (bool): apply label reduction before merging
+ method ({two_transition_systems, all_transition_systems, all_transition_systems_with_fixpoint}): Label reduction method. See the AAAI14 paper by Sievers et al. for explanation of the default label reduction method and the 'combinable relation' .Also note that you must set at least one of the options reduce_labels_before_shrinking or reduce_labels_before_merging in order to use the chosen label reduction configuration.
+ - two_transition_systems: compute the 'combinable relation' only for the two transition systems being merged next
+ - all_transition_systems: compute the 'combinable relation' for labels once for every transition system and reduce labels
+ - all_transition_systems_with_fixpoint: keep computing the 'combinable relation' for labels iteratively for all transition systems until no more labels can be reduced
+ system_order ({regular, reverse, random}): Order of transition systems for the label reduction methods that iterate over the set of all transition systems. Only useful for the choices all_transition_systems and all_transition_systems_with_fixpoint for the option label_reduction_method.
+ - regular: transition systems are considered in the order given in the planner input if atomic and in the order of their creation if composite.
+ - reverse: inverse of regular
+ - random: random order
+ random_seed (int [-1, infinity]): Set to -1 (default) to use the global random number generator. Set to any other value to use a local random number generator with the given seed.
+
+Help for LandmarkFactory
+
+
+This feature type can be bound to variables using ``let(variable_name, variable_definition, expression)`` where ``expression`` can use ``variable_name``. Predefinitions using ``--evaluator``, ``--heuristic``, and ``--landmarks`` are automatically transformed into ``let``-expressions but are deprecated.
+== Exhaustive Landmarks ==
+lm_exhaust(verbosity=normal, only_causal_landmarks=false)
+ verbosity ({silent, normal, verbose, debug}): Option to specify the verbosity level.
+ - silent: only the most basic output
+ - normal: relevant information to monitor progress
+ - verbose: full output
+ - debug: like verbose with additional debug output
+ only_causal_landmarks (bool): keep only causal landmarks
+== h^m Landmarks ==
+lm_hm(m=2, conjunctive_landmarks=true, verbosity=normal, use_orders=true)
+ m (int): subset size (if unsure, use the default of 2)
+ conjunctive_landmarks (bool): keep conjunctive landmarks
+ verbosity ({silent, normal, verbose, debug}): Option to specify the verbosity level.
+ - silent: only the most basic output
+ - normal: relevant information to monitor progress
+ - verbose: full output
+ - debug: like verbose with additional debug output
+ use_orders (bool): use orders between landmarks
+== Merged Landmarks ==
+lm_merged(lm_factories, verbosity=normal)
+ lm_factories (list of LandmarkFactory): 
+ verbosity ({silent, normal, verbose, debug}): Option to specify the verbosity level.
+ - silent: only the most basic output
+ - normal: relevant information to monitor progress
+ - verbose: full output
+ - debug: like verbose with additional debug output
+== HPS Orders ==
+lm_reasonable_orders_hps(lm_factory, verbosity=normal)
+ lm_factory (LandmarkFactory): 
+ verbosity ({silent, normal, verbose, debug}): Option to specify the verbosity level.
+ - silent: only the most basic output
+ - normal: relevant information to monitor progress
+ - verbose: full output
+ - debug: like verbose with additional debug output
+== RHW Landmarks ==
+lm_rhw(disjunctive_landmarks=true, verbosity=normal, use_orders=true, only_causal_landmarks=false)
+ disjunctive_landmarks (bool): keep disjunctive landmarks
+ verbosity ({silent, normal, verbose, debug}): Option to specify the verbosity level.
+ - silent: only the most basic output
+ - normal: relevant information to monitor progress
+ - verbose: full output
+ - debug: like verbose with additional debug output
+ use_orders (bool): use orders between landmarks
+ only_causal_landmarks (bool): keep only causal landmarks
+== Zhu/Givan Landmarks ==
+lm_zg(verbosity=normal, use_orders=true)
+ verbosity ({silent, normal, verbose, debug}): Option to specify the verbosity level.
+ - silent: only the most basic output
+ - normal: relevant information to monitor progress
+ - verbose: full output
+ - debug: like verbose with additional debug output
+ use_orders (bool): use orders between landmarks
+
+Help for MergeScoringFunction
+
+== DFP scoring ==
+dfp()
+== Goal relevance scoring ==
+goal_relevance()
+== MIASM ==
+sf_miasm(shrink_strategy, max_states=-1, max_states_before_merge=-1, threshold_before_merge=-1)
+ shrink_strategy (ShrinkStrategy): We recommend setting this to match the shrink strategy configuration given to {{{merge_and_shrink}}}, see note below.
+ max_states (int [-1, infinity]): maximum transition system size allowed at any time point.
+ max_states_before_merge (int [-1, infinity]): maximum transition system size allowed for two transition systems before being merged to form the synchronized product.
+ threshold_before_merge (int [-1, infinity]): If a transition system, before being merged, surpasses this soft transition system size limit, the shrink strategy is called to possibly shrink the transition system.
+== Single random ==
+single_random(random_seed=-1)
+ random_seed (int [-1, infinity]): Set to -1 (default) to use the global random number generator. Set to any other value to use a local random number generator with the given seed.
+== Total order ==
+total_order(atomic_ts_order=reverse_level, product_ts_order=new_to_old, atomic_before_product=false, random_seed=-1)
+ atomic_ts_order ({reverse_level, level, random}): The order in which atomic transition systems are considered when considering pairs of potential merges.
+ - reverse_level: the variable order of Fast Downward
+ - level: opposite of reverse_level
+ - random: a randomized order
+ product_ts_order ({old_to_new, new_to_old, random}): The order in which product transition systems are considered when considering pairs of potential merges.
+ - old_to_new: consider composite transition systems from oldest to most recent
+ - new_to_old: opposite of old_to_new
+ - random: a randomized order
+ atomic_before_product (bool): Consider atomic transition systems before composite ones iff true.
+ random_seed (int [-1, infinity]): Set to -1 (default) to use the global random number generator. Set to any other value to use a local random number generator with the given seed.
+
+Help for MergeSelector
+
+== Score based filtering merge selector ==
+score_based_filtering(scoring_functions)
+ scoring_functions (list of MergeScoringFunction): The list of scoring functions used to compute scores for candidates.
+
+Help for MergeStrategy
+
+== Precomputed merge strategy ==
+merge_precomputed(merge_tree, verbosity=normal)
+ merge_tree (MergeTree): The precomputed merge tree.
+ verbosity ({silent, normal, verbose, debug}): Option to specify the verbosity level.
+ - silent: only the most basic output
+ - normal: relevant information to monitor progress
+ - verbose: full output
+ - debug: like verbose with additional debug output
+== Merge strategy SSCs ==
+merge_sccs(order_of_sccs=topological, merge_tree=<none>, merge_selector=<none>, verbosity=normal)
+ order_of_sccs ({topological, reverse_topological, decreasing, increasing}): how the SCCs should be ordered
+ - topological: according to the topological ordering of the directed graph where each obtained SCC is a 'supervertex'
+ - reverse_topological: according to the reverse topological ordering of the directed graph where each obtained SCC is a 'supervertex'
+ - decreasing: biggest SCCs first, using 'topological' as tie-breaker
+ - increasing: smallest SCCs first, using 'topological' as tie-breaker
+ merge_tree (MergeTree): the fallback merge strategy to use if a precomputed strategy should be used.
+ merge_selector (MergeSelector): the fallback merge strategy to use if a stateless strategy should be used.
+ verbosity ({silent, normal, verbose, debug}): Option to specify the verbosity level.
+ - silent: only the most basic output
+ - normal: relevant information to monitor progress
+ - verbose: full output
+ - debug: like verbose with additional debug output
+== Stateless merge strategy ==
+merge_stateless(merge_selector, verbosity=normal)
+ merge_selector (MergeSelector): The merge selector to be used.
+ verbosity ({silent, normal, verbose, debug}): Option to specify the verbosity level.
+ - silent: only the most basic output
+ - normal: relevant information to monitor progress
+ - verbose: full output
+ - debug: like verbose with additional debug output
+
+Help for MergeTree
+
+== Linear merge trees ==
+linear(random_seed=-1, update_option=use_random, variable_order=cg_goal_level)
+ random_seed (int [-1, infinity]): Set to -1 (default) to use the global random number generator. Set to any other value to use a local random number generator with the given seed.
+ update_option ({use_first, use_second, use_random}): When the merge tree is used within another merge strategy, how should it be updated when a merge different to a merge from the tree is performed.
+ - use_first: the node representing the index that would have been merged earlier survives
+ - use_second: the node representing the index that would have been merged later survives
+ - use_random: a random node (of the above two) survives
+ variable_order ({cg_goal_level, cg_goal_random, goal_cg_level, random, level, reverse_level}): the order in which atomic transition systems are merged
+ - cg_goal_level: variables are prioritized first if they have an arc to a previously added variable, second if their goal value is defined and third according to their level in the causal graph
+ - cg_goal_random: variables are prioritized first if they have an arc to a previously added variable, second if their goal value is defined and third randomly
+ - goal_cg_level: variables are prioritized first if their goal value is defined, second if they have an arc to a previously added variable, and third according to their level in the causal graph
+ - random: variables are ordered randomly
+ - level: variables are ordered according to their level in the causal graph
+ - reverse_level: variables are ordered reverse to their level in the causal graph
+
+Help for OpenList
+
+== Alternation open list ==
+alt(sublists, boost=0)
+ sublists (list of OpenList): open lists between which this one alternates
+ boost (int): boost value for contained open lists that are restricted to preferred successors
+== Epsilon-greedy open list ==
+epsilon_greedy(eval, pref_only=false, epsilon=0.2, random_seed=-1)
+ eval (Evaluator): evaluator
+ pref_only (bool): insert only nodes generated by preferred operators
+ epsilon (double [0.0, 1.0]): probability for choosing the next entry randomly
+ random_seed (int [-1, infinity]): Set to -1 (default) to use the global random number generator. Set to any other value to use a local random number generator with the given seed.
+== Pareto open list ==
+pareto(evals, pref_only=false, state_uniform_selection=false, random_seed=-1)
+ evals (list of Evaluator): evaluators
+ pref_only (bool): insert only nodes generated by preferred operators
+ state_uniform_selection (bool): When removing an entry, we select a non-dominated bucket and return its oldest entry. If this option is false, we select uniformly from the non-dominated buckets; if the option is true, we weight the buckets with the number of entries.
+ random_seed (int [-1, infinity]): Set to -1 (default) to use the global random number generator. Set to any other value to use a local random number generator with the given seed.
+== Best-first open list ==
+single(eval, pref_only=false)
+ eval (Evaluator): evaluator
+ pref_only (bool): insert only nodes generated by preferred operators
+== Tie-breaking open list ==
+tiebreaking(evals, pref_only=false, unsafe_pruning=true)
+ evals (list of Evaluator): evaluators
+ pref_only (bool): insert only nodes generated by preferred operators
+ unsafe_pruning (bool): allow unsafe pruning when the main evaluator regards a state a dead end
+== Type-based open list ==
+type_based(evaluators, random_seed=-1)
+ evaluators (list of Evaluator): Evaluators used to determine the bucket for each entry.
+ random_seed (int [-1, infinity]): Set to -1 (default) to use the global random number generator. Set to any other value to use a local random number generator with the given seed.
+
+Help for PatternCollectionGenerator
+
+== combo ==
+combo(max_states=1000000, verbosity=normal)
+ max_states (int [1, infinity]): maximum abstraction size for combo strategy
+ verbosity ({silent, normal, verbose, debug}): Option to specify the verbosity level.
+ - silent: only the most basic output
+ - normal: relevant information to monitor progress
+ - verbose: full output
+ - debug: like verbose with additional debug output
+== Disjoint CEGAR ==
+disjoint_cegar(max_pdb_size=1000000, max_collection_size=10000000, max_time=infinity, use_wildcard_plans=true, verbosity=normal, random_seed=-1)
+ max_pdb_size (int [1, infinity]): maximum number of states per pattern database (ignored for the initial collection consisting of a singleton pattern for each goal variable)
+ max_collection_size (int [1, infinity]): maximum number of states in the pattern collection (ignored for the initial collection consisting of a singleton pattern for each goal variable)
+ max_time (double [0.0, infinity]): maximum time in seconds for this pattern collection generator (ignored for computing the initial collection consisting of a singleton pattern for each goal variable)
+ use_wildcard_plans (bool): if true, compute wildcard plans which are sequences of sets of operators that induce the same transition; otherwise compute regular plans which are sequences of single operators
+ verbosity ({silent, normal, verbose, debug}): Option to specify the verbosity level.
+ - silent: only the most basic output
+ - normal: relevant information to monitor progress
+ - verbose: full output
+ - debug: like verbose with additional debug output
+ random_seed (int [-1, infinity]): Set to -1 (default) to use the global random number generator. Set to any other value to use a local random number generator with the given seed.
+== Genetic Algorithm Patterns ==
+genetic(pdb_max_size=50000, num_collections=5, num_episodes=30, mutation_probability=0.01, disjoint=false, random_seed=-1, verbosity=normal)
+ pdb_max_size (int [1, infinity]): maximal number of states per pattern database 
+ num_collections (int [1, infinity]): number of pattern collections to maintain in the genetic algorithm (population size)
+ num_episodes (int [0, infinity]): number of episodes for the genetic algorithm
+ mutation_probability (double [0.0, 1.0]): probability for flipping a bit in the genetic algorithm
+ disjoint (bool): consider a pattern collection invalid (giving it very low fitness) if its patterns are not disjoint
+ random_seed (int [-1, infinity]): Set to -1 (default) to use the global random number generator. Set to any other value to use a local random number generator with the given seed.
+ verbosity ({silent, normal, verbose, debug}): Option to specify the verbosity level.
+ - silent: only the most basic output
+ - normal: relevant information to monitor progress
+ - verbose: full output
+ - debug: like verbose with additional debug output
+== Hill climbing ==
+hillclimbing(pdb_max_size=2000000, collection_max_size=20000000, num_samples=1000, min_improvement=10, max_time=infinity, random_seed=-1, verbosity=normal)
+ pdb_max_size (int [1, infinity]): maximal number of states per pattern database 
+ collection_max_size (int [1, infinity]): maximal number of states in the pattern collection
+ num_samples (int [1, infinity]): number of samples (random states) on which to evaluate each candidate pattern collection
+ min_improvement (int [1, infinity]): minimum number of samples on which a candidate pattern collection must improve on the current one to be considered as the next pattern collection 
+ max_time (double [0.0, infinity]): maximum time in seconds for improving the initial pattern collection via hill climbing. If set to 0, no hill climbing is performed at all. Note that this limit only affects hill climbing. Use max_time_dominance_pruning to limit the time spent for pruning dominated patterns.
+ random_seed (int [-1, infinity]): Set to -1 (default) to use the global random number generator. Set to any other value to use a local random number generator with the given seed.
+ verbosity ({silent, normal, verbose, debug}): Option to specify the verbosity level.
+ - silent: only the most basic output
+ - normal: relevant information to monitor progress
+ - verbose: full output
+ - debug: like verbose with additional debug output
+== manual_patterns ==
+manual_patterns(patterns, verbosity=normal)
+ patterns (list of list of int): list of patterns (which are lists of variable numbers of the planning task).
+ verbosity ({silent, normal, verbose, debug}): Option to specify the verbosity level.
+ - silent: only the most basic output
+ - normal: relevant information to monitor progress
+ - verbose: full output
+ - debug: like verbose with additional debug output
+== Multiple CEGAR ==
+multiple_cegar(max_pdb_size=1M, max_collection_size=10M, pattern_generation_max_time=infinity, total_max_time=100.0, stagnation_limit=20.0, blacklist_trigger_percentage=0.75, enable_blacklist_on_stagnation=true, verbosity=normal, random_seed=-1, use_wildcard_plans=true)
+ max_pdb_size (int [1, infinity]): maximum number of states for each pattern database, computed by compute_pattern (possibly ignored by singleton patterns consisting of a goal variable)
+ max_collection_size (int [1, infinity]): maximum number of states in all pattern databases of the collection (possibly ignored, see max_pdb_size)
+ pattern_generation_max_time (double [0.0, infinity]): maximum time in seconds for each call to the algorithm for computing a single pattern
+ total_max_time (double [0.0, infinity]): maximum time in seconds for this pattern collection generator. It will always execute at least one iteration, i.e., call the algorithm for computing a single pattern at least once.
+ stagnation_limit (double [1.0, infinity]): maximum time in seconds this pattern generator is allowed to run without generating a new pattern. It terminates prematurely if this limit is hit unless enable_blacklist_on_stagnation is enabled.
+ blacklist_trigger_percentage (double [0.0, 1.0]): percentage of total_max_time after which blacklisting is enabled
+ enable_blacklist_on_stagnation (bool): if true, blacklisting is enabled when stagnation_limit is hit for the first time (unless it was already enabled due to blacklist_trigger_percentage) and pattern generation is terminated when stagnation_limit is hit for the second time. If false, pattern generation is terminated already the first time stagnation_limit is hit.
+ verbosity ({silent, normal, verbose, debug}): Option to specify the verbosity level.
+ - silent: only the most basic output
+ - normal: relevant information to monitor progress
+ - verbose: full output
+ - debug: like verbose with additional debug output
+ random_seed (int [-1, infinity]): Set to -1 (default) to use the global random number generator. Set to any other value to use a local random number generator with the given seed.
+ use_wildcard_plans (bool): if true, compute wildcard plans which are sequences of sets of operators that induce the same transition; otherwise compute regular plans which are sequences of single operators
+== Multiple Random Patterns ==
+random_patterns(max_pdb_size=1M, max_collection_size=10M, pattern_generation_max_time=infinity, total_max_time=100.0, stagnation_limit=20.0, blacklist_trigger_percentage=0.75, enable_blacklist_on_stagnation=true, verbosity=normal, random_seed=-1, bidirectional=true)
+ max_pdb_size (int [1, infinity]): maximum number of states for each pattern database, computed by compute_pattern (possibly ignored by singleton patterns consisting of a goal variable)
+ max_collection_size (int [1, infinity]): maximum number of states in all pattern databases of the collection (possibly ignored, see max_pdb_size)
+ pattern_generation_max_time (double [0.0, infinity]): maximum time in seconds for each call to the algorithm for computing a single pattern
+ total_max_time (double [0.0, infinity]): maximum time in seconds for this pattern collection generator. It will always execute at least one iteration, i.e., call the algorithm for computing a single pattern at least once.
+ stagnation_limit (double [1.0, infinity]): maximum time in seconds this pattern generator is allowed to run without generating a new pattern. It terminates prematurely if this limit is hit unless enable_blacklist_on_stagnation is enabled.
+ blacklist_trigger_percentage (double [0.0, 1.0]): percentage of total_max_time after which blacklisting is enabled
+ enable_blacklist_on_stagnation (bool): if true, blacklisting is enabled when stagnation_limit is hit for the first time (unless it was already enabled due to blacklist_trigger_percentage) and pattern generation is terminated when stagnation_limit is hit for the second time. If false, pattern generation is terminated already the first time stagnation_limit is hit.
+ verbosity ({silent, normal, verbose, debug}): Option to specify the verbosity level.
+ - silent: only the most basic output
+ - normal: relevant information to monitor progress
+ - verbose: full output
+ - debug: like verbose with additional debug output
+ random_seed (int [-1, infinity]): Set to -1 (default) to use the global random number generator. Set to any other value to use a local random number generator with the given seed.
+ bidirectional (bool): this option decides if the causal graph is considered to be directed or undirected selecting predecessors of already selected variables. If true (default), it is considered to be undirected (precondition-effect edges are bidirectional). If false, it is considered to be directed (a variable is a neighbor only if it is a predecessor.
+== Systematically generated patterns ==
+systematic(pattern_max_size=1, only_interesting_patterns=true, verbosity=normal)
+ pattern_max_size (int [1, infinity]): max number of variables per pattern
+ only_interesting_patterns (bool): Only consider the union of two disjoint patterns if the union has more information than the individual patterns.
+ verbosity ({silent, normal, verbose, debug}): Option to specify the verbosity level.
+ - silent: only the most basic output
+ - normal: relevant information to monitor progress
+ - verbose: full output
+ - debug: like verbose with additional debug output
+
+Help for PatternGenerator
+
+== CEGAR ==
+cegar_pattern(max_pdb_size=1000000, max_time=infinity, use_wildcard_plans=true, verbosity=normal, random_seed=-1)
+ max_pdb_size (int [1, infinity]): maximum number of states in the final pattern database (possibly ignored by a singleton pattern consisting of a single goal variable)
+ max_time (double [0.0, infinity]): maximum time in seconds for the pattern generation
+ use_wildcard_plans (bool): if true, compute wildcard plans which are sequences of sets of operators that induce the same transition; otherwise compute regular plans which are sequences of single operators
+ verbosity ({silent, normal, verbose, debug}): Option to specify the verbosity level.
+ - silent: only the most basic output
+ - normal: relevant information to monitor progress
+ - verbose: full output
+ - debug: like verbose with additional debug output
+ random_seed (int [-1, infinity]): Set to -1 (default) to use the global random number generator. Set to any other value to use a local random number generator with the given seed.
+== greedy ==
+greedy(max_states=1000000, verbosity=normal)
+ max_states (int [1, infinity]): maximal number of abstract states in the pattern database.
+ verbosity ({silent, normal, verbose, debug}): Option to specify the verbosity level.
+ - silent: only the most basic output
+ - normal: relevant information to monitor progress
+ - verbose: full output
+ - debug: like verbose with additional debug output
+== manual_pattern ==
+manual_pattern(pattern, verbosity=normal)
+ pattern (list of int): list of variable numbers of the planning task that should be used as pattern.
+ verbosity ({silent, normal, verbose, debug}): Option to specify the verbosity level.
+ - silent: only the most basic output
+ - normal: relevant information to monitor progress
+ - verbose: full output
+ - debug: like verbose with additional debug output
+== Random Pattern ==
+random_pattern(max_pdb_size=1000000, max_time=infinity, bidirectional=true, verbosity=normal, random_seed=-1)
+ max_pdb_size (int [1, infinity]): maximum number of states in the final pattern database (possibly ignored by a singleton pattern consisting of a single goal variable)
+ max_time (double [0.0, infinity]): maximum time in seconds for the pattern generation
+ bidirectional (bool): this option decides if the causal graph is considered to be directed or undirected selecting predecessors of already selected variables. If true (default), it is considered to be undirected (precondition-effect edges are bidirectional). If false, it is considered to be directed (a variable is a neighbor only if it is a predecessor.
+ verbosity ({silent, normal, verbose, debug}): Option to specify the verbosity level.
+ - silent: only the most basic output
+ - normal: relevant information to monitor progress
+ - verbose: full output
+ - debug: like verbose with additional debug output
+ random_seed (int [-1, infinity]): Set to -1 (default) to use the global random number generator. Set to any other value to use a local random number generator with the given seed.
+
+Help for PruningMethod
+
+== Atom-centric stubborn sets ==
+atom_centric_stubborn_sets(use_sibling_shortcut=true, atom_selection_strategy=quick_skip, verbosity=normal)
+ use_sibling_shortcut (bool): use variable-based marking in addition to atom-based marking
+ atom_selection_strategy ({fast_downward, quick_skip, static_small, dynamic_small}): Strategy for selecting unsatisfied atoms from action preconditions or the goal atoms. All strategies use the fast_downward strategy for breaking ties.
+ - fast_downward: select the atom (v, d) with the variable v that comes first in the Fast Downward variable ordering (which is based on the causal graph)
+ - quick_skip: if possible, select an unsatisfied atom whose producers are already marked
+ - static_small: select the atom achieved by the fewest number of actions
+ - dynamic_small: select the atom achieved by the fewest number of actions that are not yet part of the stubborn set
+ verbosity ({silent, normal, verbose, debug}): Option to specify the verbosity level.
+ - silent: only the most basic output
+ - normal: relevant information to monitor progress
+ - verbose: full output
+ - debug: like verbose with additional debug output
+== Limited pruning ==
+limited_pruning(pruning, min_required_pruning_ratio=0.2, expansions_before_checking_pruning_ratio=1000, verbosity=normal)
+ pruning (PruningMethod): the underlying pruning method to be applied
+ min_required_pruning_ratio (double [0.0, 1.0]): disable pruning if the pruning ratio is lower than this value after 'expansions_before_checking_pruning_ratio' expansions
+ expansions_before_checking_pruning_ratio (int [0, infinity]): number of expansions before deciding whether to disable pruning
+ verbosity ({silent, normal, verbose, debug}): Option to specify the verbosity level.
+ - silent: only the most basic output
+ - normal: relevant information to monitor progress
+ - verbose: full output
+ - debug: like verbose with additional debug output
+== No pruning ==
+null(verbosity=normal)
+ verbosity ({silent, normal, verbose, debug}): Option to specify the verbosity level.
+ - silent: only the most basic output
+ - normal: relevant information to monitor progress
+ - verbose: full output
+ - debug: like verbose with additional debug output
+== StubbornSetsEC ==
+stubborn_sets_ec(verbosity=normal)
+ verbosity ({silent, normal, verbose, debug}): Option to specify the verbosity level.
+ - silent: only the most basic output
+ - normal: relevant information to monitor progress
+ - verbose: full output
+ - debug: like verbose with additional debug output
+== Stubborn sets simple ==
+stubborn_sets_simple(verbosity=normal)
+ verbosity ({silent, normal, verbose, debug}): Option to specify the verbosity level.
+ - silent: only the most basic output
+ - normal: relevant information to monitor progress
+ - verbose: full output
+ - debug: like verbose with additional debug output
+
+Help for SearchEngine
+
+== A* search (eager) ==
+astar(eval, lazy_evaluator=<none>, pruning=null(), cost_type=normal, bound=infinity, max_time=infinity, verbosity=normal)
+ eval (Evaluator): evaluator for h-value
+ lazy_evaluator (Evaluator): An evaluator that re-evaluates a state before it is expanded.
+ pruning (PruningMethod): Pruning methods can prune or reorder the set of applicable operators in each state and thereby influence the number and order of successor states that are considered.
+ cost_type ({normal, one, plusone}): Operator cost adjustment type. No matter what this setting is, axioms will always be considered as actions of cost 0 by the heuristics that treat axioms as actions.
+ - normal: all actions are accounted for with their real cost
+ - one: all actions are accounted for as unit cost
+ - plusone: all actions are accounted for as their real cost + 1 (except if all actions have original cost 1, in which case cost 1 is used). This is the behaviour known for the heuristics of the LAMA planner. This is intended to be used by the heuristics, not search engines, but is supported for both.
+ bound (int): exclusive depth bound on g-values. Cutoffs are always performed according to the real cost, regardless of the cost_type parameter
+ max_time (double): maximum time in seconds the search is allowed to run for. The timeout is only checked after each complete search step (usually a node expansion), so the actual runtime can be arbitrarily longer. Therefore, this parameter should not be used for time-limiting experiments. Timed-out searches are treated as failed searches, just like incomplete search algorithms that exhaust their search space.
+ verbosity ({silent, normal, verbose, debug}): Option to specify the verbosity level.
+ - silent: only the most basic output
+ - normal: relevant information to monitor progress
+ - verbose: full output
+ - debug: like verbose with additional debug output
+== Eager best-first search ==
+eager(open, reopen_closed=false, f_eval=<none>, preferred=[], pruning=null(), cost_type=normal, bound=infinity, max_time=infinity, verbosity=normal)
+ open (OpenList): open list
+ reopen_closed (bool): reopen closed nodes
+ f_eval (Evaluator): set evaluator for jump statistics. (Optional; if no evaluator is used, jump statistics will not be displayed.)
+ preferred (list of Evaluator): use preferred operators of these evaluators
+ pruning (PruningMethod): Pruning methods can prune or reorder the set of applicable operators in each state and thereby influence the number and order of successor states that are considered.
+ cost_type ({normal, one, plusone}): Operator cost adjustment type. No matter what this setting is, axioms will always be considered as actions of cost 0 by the heuristics that treat axioms as actions.
+ - normal: all actions are accounted for with their real cost
+ - one: all actions are accounted for as unit cost
+ - plusone: all actions are accounted for as their real cost + 1 (except if all actions have original cost 1, in which case cost 1 is used). This is the behaviour known for the heuristics of the LAMA planner. This is intended to be used by the heuristics, not search engines, but is supported for both.
+ bound (int): exclusive depth bound on g-values. Cutoffs are always performed according to the real cost, regardless of the cost_type parameter
+ max_time (double): maximum time in seconds the search is allowed to run for. The timeout is only checked after each complete search step (usually a node expansion), so the actual runtime can be arbitrarily longer. Therefore, this parameter should not be used for time-limiting experiments. Timed-out searches are treated as failed searches, just like incomplete search algorithms that exhaust their search space.
+ verbosity ({silent, normal, verbose, debug}): Option to specify the verbosity level.
+ - silent: only the most basic output
+ - normal: relevant information to monitor progress
+ - verbose: full output
+ - debug: like verbose with additional debug output
+== Greedy search (eager) ==
+eager_greedy(evals, preferred=[], boost=0, pruning=null(), cost_type=normal, bound=infinity, max_time=infinity, verbosity=normal)
+ evals (list of Evaluator): evaluators
+ preferred (list of Evaluator): use preferred operators of these evaluators
+ boost (int): boost value for preferred operator open lists
+ pruning (PruningMethod): Pruning methods can prune or reorder the set of applicable operators in each state and thereby influence the number and order of successor states that are considered.
+ cost_type ({normal, one, plusone}): Operator cost adjustment type. No matter what this setting is, axioms will always be considered as actions of cost 0 by the heuristics that treat axioms as actions.
+ - normal: all actions are accounted for with their real cost
+ - one: all actions are accounted for as unit cost
+ - plusone: all actions are accounted for as their real cost + 1 (except if all actions have original cost 1, in which case cost 1 is used). This is the behaviour known for the heuristics of the LAMA planner. This is intended to be used by the heuristics, not search engines, but is supported for both.
+ bound (int): exclusive depth bound on g-values. Cutoffs are always performed according to the real cost, regardless of the cost_type parameter
+ max_time (double): maximum time in seconds the search is allowed to run for. The timeout is only checked after each complete search step (usually a node expansion), so the actual runtime can be arbitrarily longer. Therefore, this parameter should not be used for time-limiting experiments. Timed-out searches are treated as failed searches, just like incomplete search algorithms that exhaust their search space.
+ verbosity ({silent, normal, verbose, debug}): Option to specify the verbosity level.
+ - silent: only the most basic output
+ - normal: relevant information to monitor progress
+ - verbose: full output
+ - debug: like verbose with additional debug output
+== Eager weighted A* search ==
+eager_wastar(evals, preferred=[], reopen_closed=true, boost=0, w=1, pruning=null(), cost_type=normal, bound=infinity, max_time=infinity, verbosity=normal)
+ evals (list of Evaluator): evaluators
+ preferred (list of Evaluator): use preferred operators of these evaluators
+ reopen_closed (bool): reopen closed nodes
+ boost (int): boost value for preferred operator open lists
+ w (int): evaluator weight
+ pruning (PruningMethod): Pruning methods can prune or reorder the set of applicable operators in each state and thereby influence the number and order of successor states that are considered.
+ cost_type ({normal, one, plusone}): Operator cost adjustment type. No matter what this setting is, axioms will always be considered as actions of cost 0 by the heuristics that treat axioms as actions.
+ - normal: all actions are accounted for with their real cost
+ - one: all actions are accounted for as unit cost
+ - plusone: all actions are accounted for as their real cost + 1 (except if all actions have original cost 1, in which case cost 1 is used). This is the behaviour known for the heuristics of the LAMA planner. This is intended to be used by the heuristics, not search engines, but is supported for both.
+ bound (int): exclusive depth bound on g-values. Cutoffs are always performed according to the real cost, regardless of the cost_type parameter
+ max_time (double): maximum time in seconds the search is allowed to run for. The timeout is only checked after each complete search step (usually a node expansion), so the actual runtime can be arbitrarily longer. Therefore, this parameter should not be used for time-limiting experiments. Timed-out searches are treated as failed searches, just like incomplete search algorithms that exhaust their search space.
+ verbosity ({silent, normal, verbose, debug}): Option to specify the verbosity level.
+ - silent: only the most basic output
+ - normal: relevant information to monitor progress
+ - verbose: full output
+ - debug: like verbose with additional debug output
+== Lazy enforced hill-climbing ==
+ehc(h, preferred_usage=prune_by_preferred, preferred=[], cost_type=normal, bound=infinity, max_time=infinity, verbosity=normal)
+ h (Evaluator): heuristic
+ preferred_usage ({prune_by_preferred, rank_preferred_first}): preferred operator usage
+ - prune_by_preferred: prune successors achieved by non-preferred operators
+ - rank_preferred_first: first insert successors achieved by preferred operators, then those by non-preferred operators
+ preferred (list of Evaluator): use preferred operators of these evaluators
+ cost_type ({normal, one, plusone}): Operator cost adjustment type. No matter what this setting is, axioms will always be considered as actions of cost 0 by the heuristics that treat axioms as actions.
+ - normal: all actions are accounted for with their real cost
+ - one: all actions are accounted for as unit cost
+ - plusone: all actions are accounted for as their real cost + 1 (except if all actions have original cost 1, in which case cost 1 is used). This is the behaviour known for the heuristics of the LAMA planner. This is intended to be used by the heuristics, not search engines, but is supported for both.
+ bound (int): exclusive depth bound on g-values. Cutoffs are always performed according to the real cost, regardless of the cost_type parameter
+ max_time (double): maximum time in seconds the search is allowed to run for. The timeout is only checked after each complete search step (usually a node expansion), so the actual runtime can be arbitrarily longer. Therefore, this parameter should not be used for time-limiting experiments. Timed-out searches are treated as failed searches, just like incomplete search algorithms that exhaust their search space.
+ verbosity ({silent, normal, verbose, debug}): Option to specify the verbosity level.
+ - silent: only the most basic output
+ - normal: relevant information to monitor progress
+ - verbose: full output
+ - debug: like verbose with additional debug output
+== Iterated search ==
+iterated(engine_configs, pass_bound=true, repeat_last=false, continue_on_fail=false, continue_on_solve=true, cost_type=normal, bound=infinity, max_time=infinity, verbosity=normal)
+ engine_configs (list of SearchEngine): list of search engines for each phase
+ pass_bound (bool): use bound from previous search. The bound is the real cost of the plan found before, regardless of the cost_type parameter.
+ repeat_last (bool): repeat last phase of search
+ continue_on_fail (bool): continue search after no solution found
+ continue_on_solve (bool): continue search after solution found
+ cost_type ({normal, one, plusone}): Operator cost adjustment type. No matter what this setting is, axioms will always be considered as actions of cost 0 by the heuristics that treat axioms as actions.
+ - normal: all actions are accounted for with their real cost
+ - one: all actions are accounted for as unit cost
+ - plusone: all actions are accounted for as their real cost + 1 (except if all actions have original cost 1, in which case cost 1 is used). This is the behaviour known for the heuristics of the LAMA planner. This is intended to be used by the heuristics, not search engines, but is supported for both.
+ bound (int): exclusive depth bound on g-values. Cutoffs are always performed according to the real cost, regardless of the cost_type parameter
+ max_time (double): maximum time in seconds the search is allowed to run for. The timeout is only checked after each complete search step (usually a node expansion), so the actual runtime can be arbitrarily longer. Therefore, this parameter should not be used for time-limiting experiments. Timed-out searches are treated as failed searches, just like incomplete search algorithms that exhaust their search space.
+ verbosity ({silent, normal, verbose, debug}): Option to specify the verbosity level.
+ - silent: only the most basic output
+ - normal: relevant information to monitor progress
+ - verbose: full output
+ - debug: like verbose with additional debug output
+== Lazy best-first search ==
+lazy(open, reopen_closed=false, preferred=[], randomize_successors=false, preferred_successors_first=false, random_seed=-1, cost_type=normal, bound=infinity, max_time=infinity, verbosity=normal)
+ open (OpenList): open list
+ reopen_closed (bool): reopen closed nodes
+ preferred (list of Evaluator): use preferred operators of these evaluators
+ randomize_successors (bool): randomize the order in which successors are generated
+ preferred_successors_first (bool): consider preferred operators first
+ random_seed (int [-1, infinity]): Set to -1 (default) to use the global random number generator. Set to any other value to use a local random number generator with the given seed.
+ cost_type ({normal, one, plusone}): Operator cost adjustment type. No matter what this setting is, axioms will always be considered as actions of cost 0 by the heuristics that treat axioms as actions.
+ - normal: all actions are accounted for with their real cost
+ - one: all actions are accounted for as unit cost
+ - plusone: all actions are accounted for as their real cost + 1 (except if all actions have original cost 1, in which case cost 1 is used). This is the behaviour known for the heuristics of the LAMA planner. This is intended to be used by the heuristics, not search engines, but is supported for both.
+ bound (int): exclusive depth bound on g-values. Cutoffs are always performed according to the real cost, regardless of the cost_type parameter
+ max_time (double): maximum time in seconds the search is allowed to run for. The timeout is only checked after each complete search step (usually a node expansion), so the actual runtime can be arbitrarily longer. Therefore, this parameter should not be used for time-limiting experiments. Timed-out searches are treated as failed searches, just like incomplete search algorithms that exhaust their search space.
+ verbosity ({silent, normal, verbose, debug}): Option to specify the verbosity level.
+ - silent: only the most basic output
+ - normal: relevant information to monitor progress
+ - verbose: full output
+ - debug: like verbose with additional debug output
+== Greedy search (lazy) ==
+lazy_greedy(evals, preferred=[], reopen_closed=false, boost=1000, randomize_successors=false, preferred_successors_first=false, random_seed=-1, cost_type=normal, bound=infinity, max_time=infinity, verbosity=normal)
+ evals (list of Evaluator): evaluators
+ preferred (list of Evaluator): use preferred operators of these evaluators
+ reopen_closed (bool): reopen closed nodes
+ boost (int): boost value for alternation queues that are restricted to preferred operator nodes
+ randomize_successors (bool): randomize the order in which successors are generated
+ preferred_successors_first (bool): consider preferred operators first
+ random_seed (int [-1, infinity]): Set to -1 (default) to use the global random number generator. Set to any other value to use a local random number generator with the given seed.
+ cost_type ({normal, one, plusone}): Operator cost adjustment type. No matter what this setting is, axioms will always be considered as actions of cost 0 by the heuristics that treat axioms as actions.
+ - normal: all actions are accounted for with their real cost
+ - one: all actions are accounted for as unit cost
+ - plusone: all actions are accounted for as their real cost + 1 (except if all actions have original cost 1, in which case cost 1 is used). This is the behaviour known for the heuristics of the LAMA planner. This is intended to be used by the heuristics, not search engines, but is supported for both.
+ bound (int): exclusive depth bound on g-values. Cutoffs are always performed according to the real cost, regardless of the cost_type parameter
+ max_time (double): maximum time in seconds the search is allowed to run for. The timeout is only checked after each complete search step (usually a node expansion), so the actual runtime can be arbitrarily longer. Therefore, this parameter should not be used for time-limiting experiments. Timed-out searches are treated as failed searches, just like incomplete search algorithms that exhaust their search space.
+ verbosity ({silent, normal, verbose, debug}): Option to specify the verbosity level.
+ - silent: only the most basic output
+ - normal: relevant information to monitor progress
+ - verbose: full output
+ - debug: like verbose with additional debug output
+== (Weighted) A* search (lazy) ==
+lazy_wastar(evals, preferred=[], reopen_closed=true, boost=1000, w=1, randomize_successors=false, preferred_successors_first=false, random_seed=-1, cost_type=normal, bound=infinity, max_time=infinity, verbosity=normal)
+ evals (list of Evaluator): evaluators
+ preferred (list of Evaluator): use preferred operators of these evaluators
+ reopen_closed (bool): reopen closed nodes
+ boost (int): boost value for preferred operator open lists
+ w (int): evaluator weight
+ randomize_successors (bool): randomize the order in which successors are generated
+ preferred_successors_first (bool): consider preferred operators first
+ random_seed (int [-1, infinity]): Set to -1 (default) to use the global random number generator. Set to any other value to use a local random number generator with the given seed.
+ cost_type ({normal, one, plusone}): Operator cost adjustment type. No matter what this setting is, axioms will always be considered as actions of cost 0 by the heuristics that treat axioms as actions.
+ - normal: all actions are accounted for with their real cost
+ - one: all actions are accounted for as unit cost
+ - plusone: all actions are accounted for as their real cost + 1 (except if all actions have original cost 1, in which case cost 1 is used). This is the behaviour known for the heuristics of the LAMA planner. This is intended to be used by the heuristics, not search engines, but is supported for both.
+ bound (int): exclusive depth bound on g-values. Cutoffs are always performed according to the real cost, regardless of the cost_type parameter
+ max_time (double): maximum time in seconds the search is allowed to run for. The timeout is only checked after each complete search step (usually a node expansion), so the actual runtime can be arbitrarily longer. Therefore, this parameter should not be used for time-limiting experiments. Timed-out searches are treated as failed searches, just like incomplete search algorithms that exhaust their search space.
+ verbosity ({silent, normal, verbose, debug}): Option to specify the verbosity level.
+ - silent: only the most basic output
+ - normal: relevant information to monitor progress
+ - verbose: full output
+ - debug: like verbose with additional debug output
+
+Help for ShrinkStrategy
+
+== Bismulation based shrink strategy ==
+shrink_bisimulation(greedy=false, at_limit=return)
+ greedy (bool): use greedy bisimulation
+ at_limit ({return, use_up}): what to do when the size limit is hit
+ - return: stop without refining the equivalence class further
+ - use_up: continue refining the equivalence class until the size limit is hit
+== f-preserving shrink strategy ==
+shrink_fh(random_seed=-1, shrink_f=high, shrink_h=low)
+ random_seed (int [-1, infinity]): Set to -1 (default) to use the global random number generator. Set to any other value to use a local random number generator with the given seed.
+ shrink_f ({high, low}): in which direction the f based shrink priority is ordered
+ - high: prefer shrinking states with high value
+ - low: prefer shrinking states with low value
+ shrink_h ({high, low}): in which direction the h based shrink priority is ordered
+ - high: prefer shrinking states with high value
+ - low: prefer shrinking states with low value
+== Random ==
+shrink_random(random_seed=-1)
+ random_seed (int [-1, infinity]): Set to -1 (default) to use the global random number generator. Set to any other value to use a local random number generator with the given seed.
+
+Help for SubtaskGenerator
+
+== goals ==
+goals(order=hadd_down, random_seed=-1)
+ order ({original, random, hadd_up, hadd_down}): ordering of goal or landmark facts
+ - original: according to their (internal) variable index
+ - random: according to a random permutation
+ - hadd_up: according to their h^add value, lowest first
+ - hadd_down: according to their h^add value, highest first 
+ random_seed (int [-1, infinity]): Set to -1 (default) to use the global random number generator. Set to any other value to use a local random number generator with the given seed.
+== landmarks ==
+landmarks(order=hadd_down, random_seed=-1, combine_facts=true)
+ order ({original, random, hadd_up, hadd_down}): ordering of goal or landmark facts
+ - original: according to their (internal) variable index
+ - random: according to a random permutation
+ - hadd_up: according to their h^add value, lowest first
+ - hadd_down: according to their h^add value, highest first 
+ random_seed (int [-1, infinity]): Set to -1 (default) to use the global random number generator. Set to any other value to use a local random number generator with the given seed.
+ combine_facts (bool): combine landmark facts with domain abstraction
+== original ==
+original(copies=1)
+ copies (int [1, infinity]): number of task copies
+
+Help output finished.
+Peak memory: 11244 KB
